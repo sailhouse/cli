@@ -1,0 +1,11 @@
+version: 3
+
+tasks:
+  run:
+    cmds:
+      - go run . {{.CLI_ARGS}}
+    silent: true
+  install:
+    cmds:
+      - go install .
+    silent: true
