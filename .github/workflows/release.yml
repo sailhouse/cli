@@ -8,11 +8,6 @@ on:
             required: true
             default: 'v0.0.0'
 
-  push:
-    # run only against tags
-    tags:
-      - '*'
-
 permissions:
   contents: write
   # packages: write
