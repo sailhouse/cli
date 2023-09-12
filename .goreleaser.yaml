@@ -26,7 +26,7 @@ brews:
   -
     name: sailhouse
     homepage: "https://sailhouse.dev"
-    tap:
+    repository:
       owner: sailhouse
       name: homebrew-tap
     commit_author:
