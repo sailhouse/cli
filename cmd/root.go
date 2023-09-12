@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/carlmjohnson/requests"
@@ -22,6 +23,15 @@ import (
 var rootCmd = &cobra.Command{Use: "sailhouse", PersistentPreRun: func(cmd *cobra.Command, args []string) {
 	if viper.Get("format") != "json" {
 		checkVersion(viper.GetString("version"))
+	}
+
+	team := viper.Get("team")
+	if team == "" {
+		path := cmd.CommandPath()
+		if !strings.HasPrefix(path, "sailhouse teams") && !strings.HasPrefix(path, "sailhouse auth") {
+			fmt.Println("Please set your team with `sailhouse config set team [team]`")
+			os.Exit(1)
+		}
 	}
 },
 }

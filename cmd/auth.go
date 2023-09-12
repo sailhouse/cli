@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/carlmjohnson/requests"
+	"github.com/sailhouse/sailhouse/api"
 	"github.com/sailhouse/sailhouse/config"
 	"github.com/sailhouse/sailhouse/publicid"
 	"github.com/spf13/cobra"
@@ -18,7 +19,7 @@ func init() {
 	authCmd := &cobra.Command{
 		Use:   "auth",
 		Short: "Authenticate with Sailhouse",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			code := publicid.Must()
 
 			// open a browser to the auth url
@@ -50,7 +51,7 @@ func init() {
 						continue
 					}
 
-					panic(err)
+					return err
 				}
 
 				fmt.Println("Authenticated!")
@@ -58,12 +59,26 @@ func init() {
 				break
 			}
 
+			client := api.NewSailhouseClient(token)
+
+			teams, err := client.GetTeams(context.Background())
+			if err != nil {
+				return err
+			}
+
+			if len(teams) == 0 {
+				fmt.Println("You don't have access to any teams")
+				os.Exit(1)
+			}
+
 			profile := config.LoadProfile()
-			
+
 			profile.Token = token
-			profile.Team = ""
+			profile.Team = teams[0].Slug
 
 			profile.SaveProfile()
+
+			return nil
 		},
 	}
 
