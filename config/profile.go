@@ -45,6 +45,12 @@ func (p *Profile) SaveProfile() {
 		panic(err)
 	}
 
+	// ensure the `~/.sailhouse` directory exists
+	err = os.MkdirAll(filepath.Join(dir, "/.sailhouse"), 0700)
+	if err != nil {
+		panic(err)
+	}
+
 	err = os.WriteFile(filepath.Join(dir, "/.sailhouse/profile.toml"), profileBytes, 0600)
 	if err != nil {
 		panic(err)

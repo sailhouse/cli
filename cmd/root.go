@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -57,7 +56,9 @@ func Execute(version string) {
 	viper.AddConfigPath(configPath)
 
 	if err := viper.ReadInConfig(); err != nil {
-		if !errors.Is(err, viper.ConfigFileNotFoundError{}) {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+
+		} else {
 			sentry.CaptureException(err)
 			fmt.Println("Failed to read the config file")
 		}
