@@ -37,11 +37,11 @@ func init() {
 			out.SetData(apps)
 
 			table := output.NewTable()
-			table.AddColumns("ID", "Slug")
+			table.AddColumns("Slug")
 
 			for _, app := range apps {
 				slug := lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Render(app.Slug)
-				table.AddRow(app.ID, slug)
+				table.AddRow(slug)
 			}
 
 			out.SetTable(table)
@@ -106,55 +106,6 @@ func init() {
 	}
 
 	appCmd.AddCommand(addAppCommand)
-
-	appCmd.AddCommand(&cobra.Command{
-		Use:   "usage [app-slug]",
-		Short: "Get app usage",
-		Args:  cobra.MaximumNArgs(1),
-		Run: output.WithOutput(func(cmd *cobra.Command, args []string, out *output.Output[models.AppUsage]) {
-			token := viper.GetString("token")
-
-			client := api.NewSailhouseClient(token)
-
-			apps, err := client.GetApps(context.Background())
-			if err != nil {
-				panic(err)
-			}
-
-			var selectedApp string
-			if len(args) > 0 {
-				selectedApp = args[0]
-			} else {
-				var appNames []string
-				for _, app := range apps {
-					appNames = append(appNames, app.Slug)
-				}
-
-				survey.AskOne(
-					&survey.Select{
-						Message: "Select an app",
-						Options: appNames,
-					},
-					&selectedApp,
-				)
-			}
-
-			usage, err := client.GetAppUsage(context.Background(), selectedApp)
-			if err != nil {
-				out.AddError("Failed to get app usage", err)
-				return
-			}
-
-			out.SetData(models.AppUsage{
-				AppID: usage.AppID,
-				Count: usage.Count,
-			})
-
-			appSlug := lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Render(selectedApp)
-			eventCount := lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Render(fmt.Sprintf("%d", usage.Count))
-			out.AddMessage(fmt.Sprintf("App %s has sent %s events", appSlug, eventCount))
-		}),
-	})
 
 	rootCmd.AddCommand(appCmd)
 }

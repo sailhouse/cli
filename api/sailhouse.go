@@ -19,12 +19,17 @@ func NewSailhouseClient(token string) *SailhouseClient {
 	return &SailhouseClient{token, team}
 }
 
+func (c *SailhouseClient) req() *requests.Builder {
+	return requests.
+		URL("https://api.sailhouse.dev").
+		Header("Authorization", c.token)
+}
+
 func (c *SailhouseClient) GetTeams(ctx context.Context) ([]models.Team, error) {
 	teams := []models.Team{}
 
-	err := requests.
-		URL("https://api.sailhouse.dev/teams").
-		Header("Authorization", c.token).
+	err := c.req().
+		Path("teams").
 		ToJSON(&teams).
 		Fetch(ctx)
 
@@ -32,10 +37,8 @@ func (c *SailhouseClient) GetTeams(ctx context.Context) ([]models.Team, error) {
 }
 
 func (c *SailhouseClient) CreateApp(ctx context.Context, name string) error {
-	return requests.
-		URL("https://api.sailhouse.dev/apps").
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	return c.req().
+		Pathf("/teams/%s/apps/%s", c.team, name).
 		BodyJSON(map[string]string{"name": name, "slug": name}).
 		Fetch(ctx)
 }
@@ -43,10 +46,8 @@ func (c *SailhouseClient) CreateApp(ctx context.Context, name string) error {
 func (c *SailhouseClient) GetApps(ctx context.Context) ([]models.App, error) {
 	apps := []models.App{}
 
-	err := requests.
-		URL("https://api.sailhouse.dev/apps").
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	err := c.req().
+		Pathf("/teams/%s/apps", c.team).
 		ToJSON(&apps).
 		Fetch(ctx)
 
@@ -60,11 +61,8 @@ func (c *SailhouseClient) GetApps(ctx context.Context) ([]models.App, error) {
 func (c *SailhouseClient) GetTopics(ctx context.Context, appID string) ([]models.Topic, error) {
 	topics := []models.Topic{}
 
-	err := requests.
-		URL("https://api.sailhouse.dev/topics").
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	err := c.req().
+		Pathf("/teams/%s/apps/%s/topics", c.team, appID).
 		ToJSON(&topics).
 		Fetch(ctx)
 
@@ -82,11 +80,8 @@ type CreateTokenResponse struct {
 func (c *SailhouseClient) CreateToken(ctx context.Context, appID string) (string, error) {
 	var resp CreateTokenResponse
 
-	err := requests.
-		URL("https://api.sailhouse.dev/apps/tokens").
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	err := c.req().
+		Pathf("/teams/%s/apps/%s/tokens", c.team, appID).
 		Method("POST").
 		ToJSON(&resp).
 		Fetch(ctx)
@@ -101,11 +96,8 @@ func (c *SailhouseClient) CreateToken(ctx context.Context, appID string) (string
 func (c *SailhouseClient) GetTokens(ctx context.Context, appID string) ([]models.TokenPreview, error) {
 	var resp []models.TokenPreview
 
-	err := requests.
-		URL("https://api.sailhouse.dev/apps/tokens").
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	err := c.req().
+		Pathf("/teams/%s/apps/%s/tokens", c.team, appID).
 		ToJSON(&resp).
 		Fetch(ctx)
 
@@ -117,31 +109,22 @@ func (c *SailhouseClient) GetTokens(ctx context.Context, appID string) ([]models
 }
 
 func (c *SailhouseClient) CreateTopic(ctx context.Context, appID, slug string) error {
-	return requests.
-		URL("https://api.sailhouse.dev/topics").
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	return c.req().
+		Pathf("/teams/%s/apps/%s/topics", c.team, appID).
 		BodyJSON(map[string]any{"slug": slug, "subscriptions": []string{}}).
 		Fetch(ctx)
 }
 
 func (c *SailhouseClient) DeleteTopic(ctx context.Context, appID, slug string) error {
-	return requests.
-		URL(fmt.Sprintf("https://api.sailhouse.dev/topics/%s", slug)).
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	return c.req().
+		Pathf("/teams/%s/apps/%s/topics/%s", c.team, appID, slug).
 		Method("DELETE").
 		Fetch(ctx)
 }
 
 func (c *SailhouseClient) CreateTopicWithKey(ctx context.Context, appID, slug, key string) error {
-	return requests.
-		URL("https://api.sailhouse.dev/topics").
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	return c.req().
+		Pathf("/teams/%s/apps/%s/topics/%s", c.team, appID, slug).
 		BodyJSON(map[string]any{"slug": slug, "subscriptions": []string{}, "schema_key": key}).
 		Fetch(ctx)
 }
@@ -149,11 +132,8 @@ func (c *SailhouseClient) CreateTopicWithKey(ctx context.Context, appID, slug, k
 func (c *SailhouseClient) GetSubscriptions(ctx context.Context, appID, topicSlug string) ([]models.Subscription, error) {
 	subscriptions := []models.Subscription{}
 
-	err := requests.
-		URL(fmt.Sprintf("https://api.sailhouse.dev/topics/%s/subscriptions", topicSlug)).
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	err := c.req().
+		Pathf("/teams/%s/apps/%s/topics/%s/subscriptions", c.team, appID, topicSlug).
 		ToJSON(&subscriptions).
 		Fetch(ctx)
 
@@ -167,11 +147,8 @@ func (c *SailhouseClient) GetSubscriptions(ctx context.Context, appID, topicSlug
 func (c *SailhouseClient) GetSubscription(ctx context.Context, appID, topicSlug, subscriptionSlug string) (*models.Subscription, error) {
 	subscription := models.Subscription{}
 
-	err := requests.
-		URL(fmt.Sprintf("https://api.sailhouse.dev/topics/%s/subscriptions/%s", topicSlug, subscriptionSlug)).
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	err := c.req().
+		Pathf("/teams/%s/apps/%s/topics/%s/subscriptions/%s", c.team, appID, topicSlug, subscriptionSlug).
 		ToJSON(&subscription).
 		Fetch(ctx)
 
@@ -217,11 +194,8 @@ func (c *SailhouseClient) CreateSubscription(ctx context.Context, appID string, 
 	}
 
 	var sub models.Subscription
-	err := requests.
-		URL(fmt.Sprintf("https://api.sailhouse.dev/topics/%s/subscriptions", newSub.TopicSlug)).
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	err := c.req().
+		Pathf("/teams/%s/apps/%s/topics/%s/subscriptions", c.team, appID, newSub.TopicSlug).
 		BodyJSON(body).
 		ToJSON(&sub).
 		Fetch(ctx)
@@ -230,11 +204,8 @@ func (c *SailhouseClient) CreateSubscription(ctx context.Context, appID string, 
 }
 
 func (c *SailhouseClient) DeleteSubscription(ctx context.Context, appID, topicSlug, subscriptionSlug string) error {
-	return requests.
-		URL(fmt.Sprintf("https://api.sailhouse.dev/topics/%s/subscriptions/%s", topicSlug, subscriptionSlug)).
-		Header("sailhouse-app", appID).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
+	return c.req().
+		Pathf("/teams/%s/apps/%s/topics/%s/subscriptions/%s", c.team, appID, topicSlug, subscriptionSlug).
 		Method("DELETE").
 		Fetch(ctx)
 }
@@ -242,37 +213,4 @@ func (c *SailhouseClient) DeleteSubscription(ctx context.Context, appID, topicSl
 type GetSchema struct {
 	Topics        []models.Topic        `json:"topics"`
 	Subscriptions []models.Subscription `json:"subscriptions"`
-}
-
-func (c *SailhouseClient) GetResourcesForSchema(ctx context.Context, appSlug, schemaKey string) (GetSchema, error) {
-	var resp GetSchema
-
-	err := requests.
-		URL(fmt.Sprintf("https://api.sailhouse.dev/schema/%s/resources", schemaKey)).
-		Header("sailhouse-app", appSlug).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
-		ToJSON(&resp).
-		Fetch(ctx)
-
-	return resp, err
-}
-
-type GetAppUsage struct {
-	AppID string `json:"app_id"`
-	Count int    `json:"count"`
-}
-
-func (c *SailhouseClient) GetAppUsage(ctx context.Context, appSlug string) (GetAppUsage, error) {
-	var resp GetAppUsage
-
-	err := requests.
-		URL("https://api.sailhouse.dev/app/usage").
-		Header("sailhouse-app", appSlug).
-		Header("Authorization", c.token).
-		Header("sailhouse-team", c.team).
-		ToJSON(&resp).
-		Fetch(ctx)
-
-	return resp, err
 }

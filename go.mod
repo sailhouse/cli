@@ -1,9 +1,11 @@
 module github.com/sailhouse/sailhouse
 
-go 1.20
+go 1.22
+
+toolchain go1.22.0
 
 require (
-	github.com/carlmjohnson/requests v0.23.1
+	github.com/carlmjohnson/requests v0.24.1
 	github.com/getsentry/sentry-go v0.22.0
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/hashicorp/go-version v1.6.0
@@ -37,10 +39,10 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
-	golang.org/x/sys v0.6.0 // indirect
-	golang.org/x/term v0.6.0 // indirect
-	golang.org/x/text v0.8.0 // indirect
+	golang.org/x/crypto v0.25.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/term v0.22.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
 
@@ -48,5 +50,5 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/matoous/go-nanoid/v2 v2.0.0
-	golang.org/x/net v0.8.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
 )
