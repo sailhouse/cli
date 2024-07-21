@@ -42,7 +42,7 @@ func init() {
 
 				tokenResponse := map[string]string{}
 
-				err := requests.URL("https://api.sailhouse.dev/auth/token").Param("code", code).ToJSON(&tokenResponse).Fetch(ctx)
+				err := requests.URL("https://api.sailhouse.dev/user/auth/token").Param("code", code).ToJSON(&tokenResponse).Fetch(ctx)
 				if err != nil {
 					respError := &requests.ResponseError{}
 					errors.As(err, &respError)
