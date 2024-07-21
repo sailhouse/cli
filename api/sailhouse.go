@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/carlmjohnson/requests"
 	"github.com/sailhouse/sailhouse/models"
@@ -18,17 +17,6 @@ type SailhouseClient struct {
 func NewSailhouseClient(token string) *SailhouseClient {
 	team := viper.GetString("team")
 	return &SailhouseClient{token, team}
-}
-
-func (c *SailhouseClient) getTeamURL(components ...string) string {
-	url := fmt.Sprintf("https://api.sailhouse.dev/teams/%s", c.team)
-	combined := strings.Join(components, "/")
-
-	if combined != "" {
-		url += "/" + combined
-	}
-
-	return url
 }
 
 func (c *SailhouseClient) req() *requests.Builder {
