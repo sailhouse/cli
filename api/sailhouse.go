@@ -86,7 +86,7 @@ type CreateTokenResponse struct {
 	Token string `json:"token"`
 }
 
-func (c *SailhouseClient) CreateToken(ctx context.Context, appID string) (string, error) {
+func (c *SailhouseClient) CreateToken(ctx context.Context, appID string, label string) (string, error) {
 	var resp CreateTokenResponse
 
 	url := fmt.Sprintf("https://api.sailhouse.dev/teams/%s/apps/%s/tokens", c.team, appID)
@@ -95,6 +95,7 @@ func (c *SailhouseClient) CreateToken(ctx context.Context, appID string) (string
 		URL(url).
 		Header("Authorization", c.token).
 		Method("POST").
+		BodyJSON(map[string]string{"label": label}).
 		ToJSON(&resp).
 		Fetch(ctx)
 
