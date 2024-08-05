@@ -6,7 +6,6 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/sailhouse/sailhouse/api"
-	"github.com/sailhouse/sailhouse/config"
 	"github.com/sailhouse/sailhouse/models"
 	"github.com/sailhouse/sailhouse/util/output"
 	"github.com/spf13/cobra"
@@ -90,10 +89,9 @@ func init() {
 			out.SetData(*team)
 			out.AddMessage(fmt.Sprintf("Team %s set", team.Slug))
 
-			profile := config.LoadProfile()
+			viper.Set("team", team.Slug)
+			viper.WriteConfig()
 
-			profile.Team = team.Slug
-			profile.SaveProfile()
 		})})
 
 	rootCmd.AddCommand(teamsCmd)

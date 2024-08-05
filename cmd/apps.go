@@ -19,8 +19,7 @@ func init() {
 		Use:   "apps",
 		Short: "Manage apps",
 	}
-
-	appCmd.AddCommand(&cobra.Command{
+	listCommand := &cobra.Command{
 		Use:   "list",
 		Short: "List apps",
 		Run: output.WithOutput(func(cmd *cobra.Command, args []string, out *output.Output[[]models.App]) {
@@ -46,7 +45,7 @@ func init() {
 
 			out.SetTable(table)
 		}),
-	})
+	}
 
 	addAppCommand := &cobra.Command{
 		Use:   "create [app-slug]",
@@ -105,7 +104,7 @@ func init() {
 		}),
 	}
 
-	appCmd.AddCommand(addAppCommand)
+	appCmd.AddCommand(addAppCommand, listCommand)
 
 	rootCmd.AddCommand(appCmd)
 }

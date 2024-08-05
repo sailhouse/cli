@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
@@ -17,7 +16,6 @@ import (
 	"github.com/sailhouse/sailhouse/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 )
 
 var rootCmd = &cobra.Command{Use: "sailhouse", PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -52,6 +50,7 @@ func Execute(version string) {
 	rootCmd.PersistentFlags().StringVar(&app, "app", "", "App to use")
 	rootCmd.PersistentFlags().StringVar(&team, "team", "", "Team to use")
 	rootCmd.PersistentFlags().StringVarP(&format, "format", "f", "text", "Format to use [json | text]")
+
 	viper.BindPFlag("app", rootCmd.PersistentFlags().Lookup("app"))
 	viper.BindPFlag("config", rootCmd.PersistentFlags().Lookup("config"))
 	viper.BindPFlag("format", rootCmd.PersistentFlags().Lookup("format"))
@@ -62,7 +61,7 @@ func Execute(version string) {
 	configPath := path.Join(dir, ".sailhouse")
 
 	viper.SetConfigName("profile")
-	viper.SetConfigType("toml")
+	viper.SetConfigType("yaml")
 	viper.AddConfigPath(configPath)
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -118,23 +117,6 @@ func checkVersion(ver string) {
 func getApp() string {
 	selectedApp := viper.GetString("app")
 	if selectedApp == "" {
-		if _, err := os.Stat("./.sailhouse/config.yaml"); err == nil {
-			type conf struct {
-				App string `yaml:"app"`
-			}
-
-			var c conf
-			yamlFile, err := ioutil.ReadFile("./.sailhouse/config.yaml")
-			if err != nil {
-				panic(err)
-			}
-
-			err = yaml.Unmarshal(yamlFile, &c)
-			if err != nil {
-				panic(err)
-			}
-		}
-
 		client := api.NewSailhouseClient(viper.GetString("token"))
 
 		apps, err := client.GetApps(context.Background())

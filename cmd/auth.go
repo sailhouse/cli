@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"os/user"
+	"path"
 	"time"
 
 	"github.com/carlmjohnson/requests"
 	"github.com/sailhouse/sailhouse/api"
-	"github.com/sailhouse/sailhouse/config"
 	"github.com/sailhouse/sailhouse/publicid"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -71,13 +73,25 @@ func init() {
 				os.Exit(1)
 			}
 
-			profile := config.LoadProfile()
+			viper.Set("token", token)
+			viper.Set("team", teams[0].Slug)
 
-			profile.Token = token
-			profile.Team = teams[0].Slug
+			if err = viper.WriteConfig(); err != nil {
+				if ok := errors.As(err, &viper.ConfigFileNotFoundError{}); ok {
+					usr, _ := user.Current()
+					dir := usr.HomeDir
+					configPath := path.Join(dir, ".sailhouse")
 
-			profile.SaveProfile()
+					os.MkdirAll(configPath, 0700)
 
+					err = viper.WriteConfigAs(path.Join(configPath, "profile.yaml"))
+					if err != nil {
+						return err
+					}
+				} else {
+					return err
+				}
+			}
 			return nil
 		},
 	}
